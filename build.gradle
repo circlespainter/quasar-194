@@ -8,7 +8,7 @@ description         = 'TODO - Pls. edit - Gradle bootstrap project for Quasar'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-ext.quasarVer       = '0.7.6-SNAPSHOT'
+ext.quasarVer       = '0.7.5'
 ext.junitVer        = '4.12'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
@@ -27,7 +27,7 @@ repositories {
 //    mavenLocal()
     mavenCentral()
 //    maven { url "https://oss.sonatype.org/content/repositories/releases" }
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+//    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 //    maven { url 'https://maven.java.net/content/repositories/snapshots' }
 }
 
@@ -53,18 +53,35 @@ test {
     }
 }
 
+testClasses {
+    doFirst {
+        println "Executing scanSuspendables..."
+        ant.taskdef (
+            name:'scanSuspendables', classname:'co.paralleluniverse.fibers.instrument.SuspendablesScanner',
+            classpath: "build/classes/test:build/resources/test:${configurations.runtime.asPath}"
+        )
+        ant.scanSuspendables (
+            auto: true,
+            suspendablesFile: "$sourceSets.test.output.resourcesDir/META-INF/suspendables",
+            supersFile: "$sourceSets.test.output.resourcesDir/META-INF/suspendable-supers",
+            append: true
+        ) {
+            fileset(dir: sourceSets.test.output.classesDir)
+        }
+    }
+}
+
 tasks.withType(Test) {
     useJUnit()
     systemProperty 'co.paralleluniverse.fibers.verifyInstrumentation', 'true'
 
-    jvmArgs "-Xmx2048m"
     doLast() {
         println "file://" + getReports().getHtml().getDestination() + "/index.html"
     }
 }
 
 tasks.withType(Test) {
-    jvmArgs "-javaagent:${configurations.quasar.singleFile}=vdcm" // =v, =d
+    jvmArgs "-javaagent:${configurations.quasar.singleFile}=vdcmb" // =v, =d
 }
 
 task wrapper(type: Wrapper) {
