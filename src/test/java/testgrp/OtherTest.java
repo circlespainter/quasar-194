@@ -9,17 +9,9 @@ import org.junit.Test;
 import java.util.concurrent.ExecutionException;
 
 public class OtherTest {
-    interface I {
-        void doSusp();
-    }
-
-    private static synchronized void syncM(I i) {
-        i.doSusp();
-    }
-
     @Test
     public void testSync() throws ExecutionException, InterruptedException {
-        FiberUtil.runInFiber(() -> syncM(new I() {
+        FiberUtil.runInFiber(() -> OtherClass.syncM(new I() {
             @Override
             @Suspendable
             public void doSusp() {
